@@ -1,0 +1,72 @@
+/* ── Hero ── */
+.hero-tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--accent-amber);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25); /* sebelumnya 0.6 */
+    text-shadow: var(--text-shadow);
+    border: 0.5px solid var(--amber-border);
+    backdrop-filter: blur(6px);
+}
+.hero-name {
+    font-family: var(--font-display);
+    font-size: clamp(44px, 5.5vw, 76px);
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-shadow: var(--text-shadow);
+}
+.hero-name-first,
+.hero-name-last {
+    display: block; /* tiap span jadi satu baris, menggantikan <br> */
+}
+.hero-name-first::first-letter,
+.hero-name-last::first-letter {
+    font-size: 1.25em;
+}
+
+/* Layar lebar (laptop, tablet): baris kedua menjorok ke kanan */
+.hero-name-last {
+    margin-left: 2em;
+}
+.hero-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    max-width: 360px;
+    line-height: 1.75;
+    margin-top: 12px;
+    font-weight: 400;
+    text-shadow: var(--text-shadow);
+}
+.icon-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 20px;
+    margin-top: 20px;
+}
+.icon-link {
+    padding: 6px 0;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-shadow: var(--text-shadow);
+    transition: color 0.2s;
+}
+.icon-link:hover {
+    color: var(--accent-amber);
+}
+
+/* Ponsel: kembali sejajar */
+@media (max-width: 599px) {
+    .hero-name-last {
+        margin-left: 0;
+    }
+}

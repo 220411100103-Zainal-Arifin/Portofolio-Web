@@ -1,0 +1,13 @@
+/* ── Perangkat sentuh: tanpa petunjuk keyboard dan hover yang menempel ── */
+@media (hover: none) {
+    .kbd-hint,
+    .kbd-badge,
+    .kbd-only {
+        display: none;
+    }
+    .widget:hover,
+    .strip-card:hover,
+    .item-card:hover {
+        transform: none;
+    }
+}

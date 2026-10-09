@@ -1,0 +1,10 @@
+/* ── Layout utama: sidebar | konten ── */
+.main-layout {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    height: 100vh;
+    height: 100dvh;
+}

@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* ── Base ── */
+@import "./base/variables.css";
+@import "./base/themes.css";
+@import "./base/reset.css";
+
+/* ── Layout ── */
+@import "./layout/background.css";
+@import "./layout/main-layout.css";
+@import "./layout/sidebar.css";
+@import "./layout/content-area.css";
+
+/* ── Komponen ── */
+@import "./components/hero.css";
+@import "./components/strip-cards.css";
+@import "./components/widget.css";
+@import "./components/modal.css";
+@import "./components/item-card.css";
+
+/* ── Aksesibilitas ── */
+@import "./base/reduced-motion.css";
+
+/* ── Responsif (URUTAN PENTING: yang terakhir menang) ── */
+@import "./responsive/1-short-laptop.css";
+@import "./responsive/2-single-column.css";
+@import "./responsive/3-tablet.css";
+@import "./responsive/4-small-phone.css";
+@import "./responsive/5-touch.css";
+@import "./responsive/6-background-focus.css";
+
+@import "./components/dino-game.css";

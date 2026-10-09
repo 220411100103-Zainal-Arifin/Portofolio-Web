@@ -1,0 +1,95 @@
+/* ── Layar sempit ATAU sangat pendek: satu kolom, bisa di-scroll ── */
+@media (max-width: 900px), (max-height: 560px) {
+    .main-layout {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    /* Sidebar → bar horizontal di atas */
+    .sidebar {
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: 2px;
+        padding: 6px 12px;
+        border-right: 0;
+        border-bottom: 0.5px solid rgba(255, 255, 255, 0.2);
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    .brand {
+        writing-mode: horizontal-tb;
+        transform: none;
+        margin: 0 auto 0 0;
+        padding: 10px 12px 10px 0;
+    }
+    .tab-btn {
+        writing-mode: horizontal-tb;
+        transform: none;
+        padding: 10px;
+        border-left: 0;
+        border-right: 0;
+        border-bottom: 2px solid transparent;
+    }
+    .tab-btn:hover {
+        border-bottom-color: rgba(217, 150, 60, 0.6);
+    }
+    .tab-btn.active {
+        border-left: 0;
+        border-bottom-color: #d9963c;
+    }
+    .kbd-hint {
+        display: none;
+    }
+
+    /* Konten: tumpukan vertikal */
+    .content-area {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: none;
+        align-content: start;
+        row-gap: 24px;
+        padding: 28px 20px 32px;
+    }
+    .hero,
+    .strip-cards,
+    .widget {
+        grid-column: 1;
+        grid-row: auto;
+        align-self: start;
+    }
+    .hero-name {
+        font-size: clamp(44px, 10vw, 72px);
+    }
+
+    .widget:hover,
+    .strip-card:hover,
+    .strip-card:focus-visible {
+        transform: none;
+    }
+
+    /* Modal */
+    .modal-panel {
+        padding: 28px 24px 36px;
+        border-radius: 16px 16px 0 0;
+    }
+    .modal-handle {
+        margin-bottom: 20px;
+    }
+    .modal-close {
+        top: 22px;
+        right: 18px;
+    }
+    .modal-subtitle {
+        margin-bottom: 24px;
+    }
+    .widget {
+        justify-self: stretch; /* mengikuti lebar kolom, sama seperti kotak pecahan */
+        max-width: none; /* lepas batas 340px milik desktop */
+    }
+    .strip-cards {
+        height: min(
+            720px,
+            calc(100vw * 1.1)
+        ); /* menggantikan height: auto + aspect-ratio */
+        max-height: 720px;
+    }
+}

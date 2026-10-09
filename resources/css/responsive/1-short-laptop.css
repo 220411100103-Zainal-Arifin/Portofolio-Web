@@ -1,0 +1,36 @@
+/* ── Laptop dengan tinggi layar terbatas (mis. 1366×768): padatkan ── */
+@media (max-height: 760px) {
+    .content-area {
+        padding-top: 28px;
+        padding-bottom: 28px;
+    }
+    .hero-name {
+        font-size: clamp(40px, 5vw, 60px);
+    }
+    .hero-tag {
+        margin-bottom: 10px;
+    }
+    .hero-desc {
+        margin-top: 8px;
+        line-height: 1.6;
+    }
+    .icon-row {
+        margin-top: 14px;
+    }
+    .strip-cards {
+        gap: 5px;
+    }
+    .strip-card {
+        padding: 10px;
+    }
+    .widget {
+        padding: 9px 12px;
+    }
+    .widget-divider {
+        margin: 8px 0;
+    }
+    .weather-meta {
+        margin-top: 8px;
+        padding-top: 7px;
+    }
+}

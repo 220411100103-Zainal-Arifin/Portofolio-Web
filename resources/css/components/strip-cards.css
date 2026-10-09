@@ -1,0 +1,184 @@
+/* ── Kartu "pecahan kaca" ──
+   Satu kotak dipecah oleh 3 garis miring menjadi 4 keping:
+
+        0%      38%              100%
+   0%   ┌───────┬──────────────────┐
+        │  tl   │       tr         │   Setiap keping = 1 tombol
+        │       ╲___         ______│   seukuran penuh kotak, lalu
+        │        ╲  ‾‾╲___‾‾       │   DIPOTONG dengan clip-path
+        ├─────────╲       mr       │   berbentuk polygon.
+        │   bl     ╲               │
+        └───────────╲──────────────┘
+   Garis pemisah digambar oleh <svg class="strip-cards-lines">.
+
+   Kotak ini mengisi tinggi kolom kanan (lihat layout/content-area.css). */
+.strip-cards {
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+    isolation: isolate;
+    backdrop-filter: blur(2px); /* sebelumnya 4px */
+    background-color: rgba(0, 0, 0, 0.06); /* baru */
+    background-image: var(--noise-panel); /* baru */
+    background-size: 200px 200px; /* baru */
+    border: 0.5px solid rgba(255, 244, 224, 0.4); /* baru: garis tepi tipis */
+}
+
+/* ── Keping dasar ── */
+.strip-card {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background-color: rgba(0, 0, 0, 0.08);
+    text-shadow: var(--text-shadow);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.strip-card:hover,
+.strip-card:focus-visible {
+    background-color: rgba(var(--accent-rgb), 0.3);
+    outline: none;
+}
+/* clip-path juga memotong outline, jadi fokus keyboard ditandai dengan warna yang lebih pekat */
+.strip-card:focus-visible {
+    background-color: rgba(var(--accent-rgb), 0.42);
+}
+
+/* Garis pemisah (di atas semua keping) */
+.strip-cards-lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    pointer-events: none;
+}
+.strip-cards-lines line {
+    stroke: rgba(255, 244, 224, 0.6);
+    stroke-width: 2;
+    vector-effect: non-scaling-stroke; /* tebal garis tetap 2px berapa pun ukuran kotak */
+}
+
+/* ── Area isi: persegi panjang di dalam keping, diatur --ct/--cr/--cb/--cl
+   (jarak dari atas/kanan/bawah/kiri dalam %, ditentukan per keping di bawah) ── */
+.strip-card-content {
+    position: absolute;
+    inset: var(--ct) var(--cr) var(--cb) var(--cl);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 6px;
+}
+
+/* ── Isi kartu ── */
+.strip-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.strip-card-num {
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text-soft);
+    transition: color 0.2s;
+}
+.strip-card-corner {
+    display: flex;
+    align-items: center;
+}
+.strip-card-arrow {
+    font-size: 13px;
+    color: var(--text-soft);
+    transition:
+        color 0.2s,
+        transform 0.2s;
+}
+.strip-card-title {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--text);
+}
+.strip-card-desc {
+    margin-top: 4px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--text-muted);
+}
+.strip-card:hover .strip-card-num,
+.strip-card:focus-visible .strip-card-num {
+    color: var(--text-muted);
+}
+.strip-card:hover .strip-card-arrow,
+.strip-card:focus-visible .strip-card-arrow {
+    color: var(--text);
+    transform: translate(2px, -2px);
+}
+
+.kbd-badge {
+    font-size: 9px;
+    color: var(--text-soft);
+    border: 0.5px solid rgba(255, 244, 224, 0.45);
+    border-radius: 3px;
+    padding: 1px 5px;
+    margin-right: 8px;
+    font-family: var(--font-mono);
+    transition:
+        color 0.2s,
+        border-color 0.2s;
+}
+.strip-card:hover .kbd-badge,
+.strip-card:focus-visible .kbd-badge {
+    color: var(--text);
+    border-color: rgba(255, 244, 224, 0.7);
+}
+
+/* ═══ Keping: bentuk (clip-path) + area isi ═══
+   Koordinat polygon = titik sudut keping (x y), dalam % dari kotak.
+   Jika mengubah garis, ubah juga <line> di strip-cards.blade.php. */
+
+/* Kiri-atas */
+.slot-tl {
+    clip-path: polygon(0 0, 38% 0, 47.5% 41.66%, 0 63.7%);
+    --ct: 4%;
+    --cr: 66%;
+    --cb: 56%;
+    --cl: 4%;
+}
+
+/* Kanan-atas: paling tipis, jadi deskripsi disembunyikan */
+.slot-tr {
+    clip-path: polygon(38% 0, 100% 0, 100% 17.3%, 47.5% 41.66%);
+    --ct: 3.5%;
+    --cr: 4%;
+    --cb: 84.5%;
+    --cl: 52%;
+}
+.slot-tr .strip-card-desc {
+    display: none;
+}
+
+/* Kanan-tengah: baji yang melebar ke kanan-bawah */
+.slot-mr {
+    clip-path: polygon(47.5% 41.66%, 100% 17.3%, 100% 100%, 38% 46.07%);
+    --ct: 38%;
+    --cr: 4%;
+    --cb: 34%;
+    --cl: 66%;
+}
+
+/* Kiri-bawah: keping paling luas */
+.slot-bl {
+    clip-path: polygon(0 63.7%, 38% 46.07%, 100% 100%, 0 100%);
+    --ct: 67%;
+    --cr: 44%;
+    --cb: 5%;
+    --cl: 4%;
+}
+.slot-bl .strip-card-title {
+    font-size: clamp(22px, 2.2vw, 30px);
+}

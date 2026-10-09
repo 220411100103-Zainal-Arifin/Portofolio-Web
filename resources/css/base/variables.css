@@ -1,0 +1,16 @@
+/* ── Design token global ── */
+:root {
+    --amber-border: rgba(217, 150, 60, 0.45);
+    --font-mono: "JetBrains Mono", monospace;
+    --font-serif: "Playfair Display", serif;
+    --font-display: "Lusitana", serif;
+    --side-w: clamp(340px, 28vw, 500px); /* lebar kolom kanan (widget + card) */
+    --bg-x: 50%; /* titik fokus horizontal gambar latar */
+    --text: #fff4e0;
+    --text-muted: rgba(255, 244, 224, 0.85);
+    --text-soft: rgba(255, 244, 224, 0.7);
+    --accent-amber: #f5c16c;
+    --text-shadow: 0 1px 2px rgba(0, 0, 0, 0.65), 0 2px 14px rgba(0, 0, 0, 0.7);
+    --scrim: 0; /* 0 = tanpa scrim (desktop); dinaikkan pada layar kecil */
+    --noise-panel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1.4 -0.55'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.10'/%3E%3C/svg%3E");
+}

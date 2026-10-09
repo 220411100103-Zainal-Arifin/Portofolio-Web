@@ -1,0 +1,72 @@
+/* ── Background ── */
+/* Gambar A: resources/images/fotomount.png
+   CATATAN: path url() relatif terhadap FILE INI (resources/css/layout/) */
+.bg-scene {
+    position: fixed;
+    inset: 0;
+    background-image: url("../../images/fotomount.png");
+    background-size: cover;
+    background-position: var(--bg-x) top;
+    background-repeat: no-repeat;
+    z-index: 0;
+    transform: scale(1.08);
+    will-change: transform;
+}
+
+/* Gambar B: resources/images/fotomount2.png
+   Muncul lewat crossfade saat kelas .is-alt aktif. */
+.bg-scene::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("../../images/fotomount2.png");
+    background-size: cover;
+    background-position: var(--bg-x) top;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    z-index: 1;
+}
+.bg-scene.is-alt::before {
+    opacity: 1;
+}
+
+/* Gambar C: resources/images/fotomount3.png
+   Muncul lewat crossfade saat kelas .is-alt2 aktif.
+   Diletakkan di atas layer B agar tampil dengan benar. */
+.bg-scene .bg-layer3 {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("../../images/fotomount3.png");
+    background-size: cover;
+    background-position: var(--bg-x) top;
+    background-repeat: no-repeat;
+    opacity: 0;
+    transition: opacity 0.9s ease;
+    z-index: 2;
+    pointer-events: none;
+}
+.bg-scene.is-alt2 .bg-layer3 {
+    opacity: 1;
+}
+
+/* Scrim + gradien gelap dari bawah + grain */
+.bg-scene::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, var(--scrim));
+    background-image:
+        linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.45) 0%,
+            rgba(0, 0, 0, 0.1) 40%,
+            rgba(0, 0, 0, 0) 70%
+        ),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.3'/%3E%3C/svg%3E");
+    background-size:
+        auto,
+        220px 220px;
+    pointer-events: none;
+}

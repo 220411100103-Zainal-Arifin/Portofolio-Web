@@ -1,0 +1,31 @@
+/* ── Game kucing di atas hero ──
+   Aset sumber beresolusi tinggi (pixel-art halus, bukan blok kasar), jadi
+   diskalakan dengan smoothing di dino-game.js (lihat SIZE) — tanpa image-rendering: pixelated.
+   Kanvasnya transparan (tanpa kotak, tanpa border): yang terlihat hanya kucing,
+   semak, burung, awan, dan tanah, di atas foto latar. Aset sudah berwarna sendiri
+   (lihat public/assets/dino/), jadi tidak ada penyesuaian warna ke tema/latar. */
+.hero-game {
+    --game-ink: #2e2e2e; /* garis tanah & ikon "ulang" saat kalah */
+    --game-ink-muted: rgba(46, 46, 46, 0.5); /* titik-titik tanah */
+    --game-accent: #a8620d; /* skor (dipakai hanya jika data-text="on") */
+
+    width: min(
+        100%,
+        560px,
+        calc(28vh * 3)
+    ); /* mengecil di layar pendek agar tidak mendesak hero */
+    margin-bottom: 18px;
+}
+
+.hero-game canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: transparent;
+    border: 0;
+    outline: none;
+    cursor: pointer;
+    touch-action: manipulation; /* tanpa zoom ketuk-dua-kali & jeda 300ms */
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}

@@ -1,0 +1,24 @@
+/* ── Ponsel kecil ── */
+@media (max-width: 480px) {
+    .content-area {
+        padding: 20px 16px 28px;
+    }
+    .brand,
+    .tab-btn {
+        font-size: 10px;
+        letter-spacing: 0.08em;
+    }
+    .tab-btn {
+        padding: 10px 8px;
+    }
+    .modal-panel {
+        padding: 24px 18px 32px;
+    }
+    .modal-title {
+        font-size: 24px;
+        padding-right: 96px;
+    }
+    .strip-cards {
+        height: calc(100vw * 1.2);
+    }
+}

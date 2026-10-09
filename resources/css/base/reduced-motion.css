@@ -1,0 +1,10 @@
+@media (prefers-reduced-motion: reduce) {
+    .modal-panel,
+    .modal-backdrop,
+    .strip-card,
+    .widget,
+    .item-card,
+    .bg-scene::before {
+        transition: none;
+    }
+}

@@ -1,0 +1,17 @@
+/* ── Tema warna per seksi (dipakai strip-card dan item-card) ── */
+.theme-projects {
+    --accent: #f59e0b;
+    --accent-rgb: 245, 158, 11;
+}
+.theme-cert {
+    --accent: #10b981;
+    --accent-rgb: 16, 185, 129;
+}
+.theme-photo {
+    --accent: #ec4899;
+    --accent-rgb: 236, 72, 153;
+}
+.theme-about {
+    --accent: #8b5cf6;
+    --accent-rgb: 139, 92, 246;
+}
