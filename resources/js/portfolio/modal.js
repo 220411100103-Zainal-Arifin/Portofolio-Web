@@ -11,10 +11,10 @@ export const isModalOpen = () =>
     document.getElementById("modal").classList.contains("open");
 
 /**
- * Membuka modal dan mengisinya dengan konten seksi yang dipilih.
- * @param {string} key - Kunci seksi pada objek `sections`.
+ * Merender judul dengan huruf pertama tiap kata diperbesar.
+ * @param {HTMLElement} el
+ * @param {string} text
  */
-
 function renderTitle(el, text) {
     const frag = document.createDocumentFragment();
 
@@ -35,11 +35,25 @@ function renderTitle(el, text) {
     el.replaceChildren(frag);
 }
 
-export function openModal(key) {
+/**
+ * Membuka modal dan mengisinya dengan konten seksi yang dipilih.
+ * @param {string} key - Kunci seksi pada objek `sections`.
+ * @param {{x:number, y:number}} [origin] - Titik asal animasi (piksel viewport).
+ */
+export function openModal(key, origin) {
     const sec = sections[key];
     if (!sec) return;
 
     activeKey = key;
+
+    const backdrop = document.getElementById("modal");
+    const panel = backdrop.querySelector(".modal-panel");
+
+    // Titik asal hanya diatur saat modal baru dibuka
+    if (!isModalOpen()) {
+        panel.style.setProperty("--origin-x", origin ? `${origin.x}px` : "50%");
+        panel.style.setProperty("--origin-y", origin ? `${origin.y}px` : "50%");
+    }
 
     renderTitle(document.getElementById("modal-title"), sec.title);
     document.getElementById("modal-subtitle").textContent = sec.subtitle;
@@ -47,20 +61,18 @@ export function openModal(key) {
     document.getElementById("modal-content").innerHTML = sec.items
         .map(
             (item) => `
-    <article class="item-card theme-${key}">
+    <article class="item-card${item.image ? " has-image" : ""}">
         ${
             item.image
-                ? `
-    <div class="item-card-media">
-        <img class="item-card-img" src="${item.image}"
-             alt="${item.alt ?? item.title}" loading="lazy">
-    </div>
-`
+                ? `<img class="item-card-img" src="${item.image}"
+                        alt="${item.alt ?? item.title}" loading="lazy">`
                 : ""
         }
-        <div class="item-card-tag">${item.tag}</div>
-        <div class="item-card-title">${item.title}</div>
-        <div class="item-card-desc">${item.desc}</div>
+        <div class="item-card-body">
+            <div class="item-card-tag">${item.tag}</div>
+            <div class="item-card-title">${item.title}</div>
+            <div class="item-card-desc">${item.desc}</div>
+        </div>
     </article>
 `,
         )
@@ -70,9 +82,8 @@ export function openModal(key) {
         btn.classList.toggle("active", btn.dataset.section === key);
     });
 
-    const backdrop = document.getElementById("modal");
     backdrop.classList.add("open");
-    backdrop.querySelector(".modal-panel").focus();
+    panel.focus({ preventScroll: true });
 }
 
 /** Menutup modal dan mereset status seksi aktif. */
@@ -87,13 +98,14 @@ export function closeModal() {
 /**
  * Membuka seksi jika belum aktif, atau menutup modal jika seksi
  * yang sama sedang tampil (perilaku toggle).
- * @param {string} key - Kunci seksi pada objek `sections`.
+ * @param {string} key
+ * @param {{x:number, y:number}} [origin]
  */
-export function toggleModal(key) {
+export function toggleModal(key, origin) {
     if (isModalOpen() && activeKey === key) {
         closeModal();
     } else {
-        openModal(key);
+        openModal(key, origin);
     }
 }
 
@@ -116,7 +128,11 @@ export function initModal() {
     document.addEventListener("click", (e) => {
         const toggle = e.target.closest("[data-modal-toggle]");
         if (toggle) {
-            toggleModal(toggle.dataset.modalToggle);
+            const r = toggle.getBoundingClientRect();
+            toggleModal(toggle.dataset.modalToggle, {
+                x: r.left + r.width / 2,
+                y: r.top + r.height / 2,
+            });
             return;
         }
         if (e.target.closest("[data-modal-close]")) closeModal();
