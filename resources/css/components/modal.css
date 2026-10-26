@@ -90,10 +90,13 @@
     font-size: 1.25em;
 }
 
-/* ── Cards ── */
+/* ── Cards ──
+   Menggantikan seluruh isi components/item-card.css (berkas itu dan @import-nya
+   di app.css harus dihapus, kalau tidak aturan lamanya menimpa yang di sini). */
 .item-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
+    grid-auto-rows: 1fr; /* semua baris sama tinggi, sehingga semua kartu berukuran sama */
     gap: 20px;
     width: 100%;
 }
@@ -115,11 +118,28 @@
     overflow: hidden;
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.04);
-    border: 0.5px solid rgba(255, 255, 255, 0.1);
+    border: 0; /* tanpa garis tepi: border lama tampak sebagai garis terang di sisi atas */
     box-shadow: none;
 }
-.item-card::before {
-    content: none; /* matikan garis/aksen warna lama */
+/* Reset elemen/garis dekoratif lama (mis. aksen warna dari components/item-card.css):
+   kartu tidak memiliki garis, border, atau bayangan, baik saat normal maupun hover.
+   Memakai !important karena aturan lama bisa lebih spesifik atau dimuat belakangan. */
+.item-grid .item-card,
+.item-grid .item-card:hover {
+    border: 0 !important;
+    outline: 0 !important;
+    box-shadow: none !important;
+}
+.item-grid .item-card::before,
+.item-grid .item-card:hover::before,
+.item-grid .item-card:not(.has-image)::after {
+    content: none !important;
+}
+/* Pengaman: aturan lama (components/item-card.css) memakai color: var(--accent), padahal
+   kelas theme-xxx sudah tidak dipasang sehingga --accent kosong dan teks jatuh ke hitam.
+   Dengan --accent didefinisikan di sini, aturan lama pun menghasilkan warna krem. */
+.item-card {
+    --accent: rgba(255, 244, 224, 0.75);
 }
 
 /* Gambar memenuhi seluruh card */
@@ -132,12 +152,14 @@
     object-fit: cover;
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.item-card:hover .item-card-img {
+.item-card:hover .item-card-img:not(.item-card-slide) {
     transform: scale(1.05);
 }
 
-/* Gradient agar teks tetap terbaca di atas gambar */
-.item-card.has-image::after {
+/* Gradient agar teks tetap terbaca di atas gambar.
+   Tidak dipakai pada kartu .image-only (Sertifikat & Fotografi): tanpa teks,
+   gradasi hanya akan menggelapkan gambarnya. */
+.item-card.has-image:not(.image-only)::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -154,7 +176,7 @@
     width: 100%;
     padding: 20px 22px;
 }
-.item-card-tag {
+.item-card .item-card-tag {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.14em;
@@ -174,4 +196,262 @@
     line-height: 1.55;
     color: rgba(255, 244, 224, 0.82);
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Layout dinamis (justified rows) untuk seksi Fotografi ──
+   Rasio asli tiap gambar diberikan lewat --ratio (diisi JS setelah gambar dimuat).
+   flex-grow dan flex-basis sama-sama proporsional terhadap rasio, sehingga
+   semua kartu dalam satu baris memiliki tinggi yang sama tanpa crop. */
+.item-grid.photo-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    --row-h: 240px;
+}
+.item-grid.photo-grid::after {
+    content: "";
+    flex-grow: 1000; /* mencegah baris terakhir melebar berlebihan */
+}
+.photo-grid .item-card {
+    --ratio: 1.5; /* nilai awal sebelum gambar termuat */
+    flex: calc(var(--ratio) * 100) 1 calc(var(--ratio) * var(--row-h));
+    width: auto;
+    min-height: 0;
+    aspect-ratio: var(--ratio);
+}
+@media (max-width: 640px) {
+    .item-grid.photo-grid {
+        --row-h: 150px;
+        gap: 8px;
+    }
+}
+
+/* ── Carousel bertumpuk (kartu dengan lebih dari satu foto) ──
+   Foto aktif ("front") maju ke depan dari belakang, sementara foto sebelumnya
+   ("back") surut ke sisi kiri. Foto berikutnya ("next") menunggu di sisi kanan.
+   Opacity foto yang surut sengaja ditunda sebentar agar tidak ada jeda gelap
+   di antara dua foto. */
+.item-card-stack {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    overflow: hidden;
+}
+.item-card-slide {
+    z-index: 1;
+    opacity: 0;
+    transform: translateX(10%) scale(0.88);
+    transition:
+        transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.6s ease 0.45s;
+    /* Tanpa will-change permanen: properti itu membuat setiap foto memakan
+       satu layer GPU sendiri dan memperberat halaman yang banyak kartunya. */
+}
+.item-card-slide[data-pos="front"] {
+    z-index: 3;
+    opacity: 1;
+    transform: none;
+    transition:
+        transform 1s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.6s ease;
+}
+.item-card-slide[data-pos="next"] {
+    z-index: 2;
+}
+.item-card-slide[data-pos="back"] {
+    transform: translateX(-10%) scale(0.88);
+}
+
+.item-card-dots {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    z-index: 2;
+    display: flex;
+    gap: 6px;
+}
+.item-card-dot {
+    position: relative;
+    width: 6px;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: rgba(255, 244, 224, 0.4);
+    cursor: pointer;
+    transition:
+        width 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        background 0.3s ease;
+}
+.item-card-dot::before {
+    content: ""; /* memperluas area klik tanpa mengubah tampilan */
+    position: absolute;
+    inset: -8px -3px;
+}
+.item-card-dot.active {
+    width: 18px;
+    background: rgba(255, 244, 224, 0.95);
+}
+
+/* Kartu di luar layar tidak di-render sampai mendekati area pandang. */
+.item-grid:not(.photo-grid) .item-card.has-image {
+    content-visibility: auto;
+}
+
+/* ── Kartu tanpa gambar: fokus pada teks ──
+   Item di data.js yang tidak memiliki `image`/`images` otomatis memakai tampilan ini:
+   teks lebih besar dan lega. Tinggi kartu diseragamkan oleh JavaScript (fitCardHeights
+   di modal.js) lewat variabel --card-h; lihat blok "Ukuran kartu seragam" di akhir berkas. */
+.item-card:not(.has-image) {
+    align-items: flex-start;
+    background: rgba(255, 255, 255, 0.05);
+}
+.item-card:not(.has-image) .item-card-body {
+    padding: 24px 24px 26px;
+}
+.item-card:not(.has-image) .item-card-tag {
+    margin-bottom: 12px;
+}
+.item-card:not(.has-image) .item-card-title {
+    font-size: 22px;
+    line-height: 1.25;
+    margin-bottom: 10px;
+    text-shadow: none;
+}
+.item-card:not(.has-image) .item-card-desc {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: rgba(255, 244, 224, 0.88);
+    text-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .item-card-slide,
+    .item-card-slide[data-pos="front"] {
+        transform: none;
+        transition: opacity 0.3s ease;
+    }
+}
+
+/* ── Seksi proyek: kartu proyek tanpa gambar ──
+   Nomor urut + tag di bagian atas, judul dan deskripsi di tengah, chip teknologi
+   selalu menempel di dasar kartu sehingga sejajar walau panjang teks berbeda.
+   Selektor diawali .item-card.project-card agar menang atas aturan kartu teks umum. */
+.item-grid.project-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+}
+.item-card.project-card {
+    align-items: stretch;
+    background-color: rgba(255, 244, 224, 0.05);
+    transition:
+        transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        background-color 0.45s ease;
+}
+/* Efek hover: kartu naik sedikit dan latarnya menjadi lebih terang. Tanpa garis atau
+   elemen tambahan di atas kartu. */
+.item-card.project-card:hover {
+    transform: translateY(-4px);
+    background-color: rgba(255, 244, 224, 0.09);
+}
+.item-card.project-card:hover .project-stack li {
+    background: rgba(255, 244, 224, 0.14);
+}
+
+.item-card.project-card .item-card-body {
+    display: flex;
+    flex-direction: column;
+    padding: 26px 26px 24px;
+}
+.project-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 28px;
+}
+.project-index {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: rgba(255, 244, 224, 0.4);
+    transition: color 0.4s ease;
+}
+.item-card.project-card:hover .project-index {
+    color: rgba(255, 244, 224, 0.85);
+}
+.item-card.project-card .item-card-tag {
+    margin-bottom: 0;
+}
+.item-card.project-card .item-card-title {
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+.item-card.project-card .item-card-desc {
+    font-size: 13.5px;
+    line-height: 1.7;
+}
+
+/* Chip teknologi (juga dipakai pada kartu bergambar yang punya `stack`) */
+.project-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: auto 0 0;
+    padding: 20px 0 0;
+    list-style: none;
+}
+.project-stack li {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: rgba(255, 244, 224, 0.08);
+    color: rgba(255, 244, 224, 0.78);
+    transition: background 0.4s ease;
+}
+.project-link {
+    align-self: flex-start;
+    margin-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: rgba(255, 244, 224, 0.85);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.project-link:hover {
+    color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .item-card.project-card {
+        transition: background-color 0.2s ease;
+    }
+    .item-card.project-card:hover {
+        transform: none;
+    }
+}
+
+/* ── Ukuran kartu seragam (letakkan paling akhir) ──
+   Tinggi semua kartu (kecuali layout foto) ditentukan oleh JavaScript: modal.js
+   mengukur tinggi asli teks tiap kartu, lalu menyimpan yang tertinggi (minimal
+   260px) pada variabel --card-h di elemen grid. Cara ini tidak bergantung pada
+   perhitungan tinggi otomatis grid, sehingga teks tidak terpotong dan tidak
+   keluar dari kotaknya. Sebelum --card-h terisi, kartu memakai tinggi otomatis.
+   Diawali #modal dan memakai !important agar menang atas aturan lama yang
+   mungkin masih dimuat. */
+#modal .item-grid:not(.photo-grid) {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+    grid-auto-rows: var(--card-h, auto);
+    align-items: start;
+    gap: 20px;
+}
+#modal .item-grid:not(.photo-grid) .item-card {
+    aspect-ratio: auto !important;
+    height: var(--card-h, auto) !important;
+    min-height: var(--card-h, 260px) !important;
+    max-height: none !important;
+    align-self: start;
 }

@@ -29,3 +29,12 @@
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 }
+
+/* Pengaman: atribut width="600" membuat kanvas selebar 600px kalau tidak ada aturan lain.
+   Aturan di bawah memastikan kanvas tidak pernah melebihi lebar induknya, walaupun suatu saat
+   pembungkus .hero-game terhapus dari hero.blade.php (di ponsel sisi kanan game jadi terpotong). */
+canvas[data-dino-game] {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
