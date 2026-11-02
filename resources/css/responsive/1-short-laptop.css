@@ -1,4 +1,3 @@
-/* ── Laptop dengan tinggi layar terbatas (mis. 1366×768): padatkan ── */
 @media (max-height: 760px) {
     .content-area {
         padding-top: 28px;

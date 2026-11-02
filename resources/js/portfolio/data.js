@@ -1,27 +1,3 @@
-/**
- * Konten modal per seksi. Kunci (projects, cert, photo, about)
- * harus sama dengan 'key' di config/portfolio.php.
- *
- * imageOnly: true     → kartu hanya menampilkan gambar (tanpa tag/title/desc).
- *                       Isi `alt` sebagai keterangan untuk pembaca layar.
- * justified: true     → gambar disusun dengan layout baris rata sesuai rasio aslinya
- *                       (tanpa crop). Dipakai pada seksi Fotografi.
- * variant: "project"  → item tanpa gambar tampil sebagai kartu proyek (nomor urut,
- *                       tag, judul, deskripsi, dan chip teknologi). Item yang punya
- *                       gambar tetap memakai kartu bergambar.
- * Tanpa imageOnly     → kartu menampilkan gambar + teks (tag, title, desc).
- *
- * image:  "..."          → satu foto.
- * images: ["...", "..."] → beberapa foto; kartu otomatis menjadi carousel bertumpuk
- *                          (foto bergulir dari belakang ke depan). Jika `images`
- *                          diisi, `image` tidak perlu ditulis.
- *
- * Khusus seksi dengan variant "project", tiap item boleh memiliki:
- *   stack: ["Laravel", "MySQL"]  → chip teknologi/kata kunci di bagian bawah kartu.
- *   link:  "https://..."         → tautan "Lihat proyek" (dibuka di tab baru).
- * Saat tampilan proyek sudah jadi, cukup tambahkan `image`/`images` + `alt`
- * pada item tersebut; kartunya otomatis berganti menjadi kartu bergambar.
- */
 export const sections = {
     projects: {
         title: "KARYA & PROYEK",

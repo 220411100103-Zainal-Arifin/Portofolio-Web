@@ -1,30 +1,14 @@
-/* ── Kartu "pecahan kaca" ──
-   Satu kotak dipecah oleh 3 garis miring menjadi 4 keping:
-
-        0%      38%              100%
-   0%   ┌───────┬──────────────────┐
-        │  tl   │       tr         │   Setiap keping = 1 tombol
-        │       ╲___         ______│   seukuran penuh kotak, lalu
-        │        ╲  ‾‾╲___‾‾       │   DIPOTONG dengan clip-path
-        ├─────────╲       mr       │   berbentuk polygon.
-        │   bl     ╲               │
-        └───────────╲──────────────┘
-   Garis pemisah digambar oleh <svg class="strip-cards-lines">.
-
-   Kotak ini mengisi tinggi kolom kanan (lihat layout/content-area.css). */
 .strip-cards {
     position: relative;
     overflow: hidden;
     border-radius: 12px;
     isolation: isolate;
-    backdrop-filter: blur(2px); /* sebelumnya 4px */
-    background-color: rgba(0, 0, 0, 0.06); /* baru */
-    background-image: var(--noise-panel); /* baru */
-    background-size: 200px 200px; /* baru */
-    border: 0.5px solid rgba(255, 244, 224, 0.4); /* baru: garis tepi tipis */
+    backdrop-filter: blur(2px);
+    background-color: rgba(0, 0, 0, 0.06);
+    background-image: var(--noise-panel);
+    background-size: 200px 200px;
+    border: 0.5px solid rgba(255, 244, 224, 0.4);
 }
-
-/* ── Keping dasar ── */
 .strip-card {
     position: absolute;
     inset: 0;
@@ -41,12 +25,10 @@
     background-color: rgba(var(--accent-rgb), 0.3);
     outline: none;
 }
-/* clip-path juga memotong outline, jadi fokus keyboard ditandai dengan warna yang lebih pekat */
+
 .strip-card:focus-visible {
     background-color: rgba(var(--accent-rgb), 0.42);
 }
-
-/* Garis pemisah (di atas semua keping) */
 .strip-cards-lines {
     position: absolute;
     inset: 0;
@@ -58,11 +40,8 @@
 .strip-cards-lines line {
     stroke: rgba(255, 244, 224, 0.6);
     stroke-width: 2;
-    vector-effect: non-scaling-stroke; /* tebal garis tetap 2px berapa pun ukuran kotak */
+    vector-effect: non-scaling-stroke;
 }
-
-/* ── Area isi: persegi panjang di dalam keping, diatur --ct/--cr/--cb/--cl
-   (jarak dari atas/kanan/bawah/kiri dalam %, ditentukan per keping di bawah) ── */
 .strip-card-content {
     position: absolute;
     inset: var(--ct) var(--cr) var(--cb) var(--cl);
@@ -71,8 +50,6 @@
     justify-content: space-between;
     gap: 6px;
 }
-
-/* ── Isi kartu ── */
 .strip-card-top {
     display: flex;
     align-items: center;
@@ -136,12 +113,6 @@
     color: var(--text);
     border-color: rgba(255, 244, 224, 0.7);
 }
-
-/* ═══ Keping: bentuk (clip-path) + area isi ═══
-   Koordinat polygon = titik sudut keping (x y), dalam % dari kotak.
-   Jika mengubah garis, ubah juga <line> di strip-cards.blade.php. */
-
-/* Kiri-atas */
 .slot-tl {
     clip-path: polygon(0 0, 38% 0, 47.5% 41.66%, 0 63.7%);
     --ct: 4%;
@@ -149,8 +120,6 @@
     --cb: 56%;
     --cl: 4%;
 }
-
-/* Kanan-atas: paling tipis, jadi deskripsi disembunyikan */
 .slot-tr {
     clip-path: polygon(38% 0, 100% 0, 100% 17.3%, 47.5% 41.66%);
     --ct: 3.5%;
@@ -161,8 +130,6 @@
 .slot-tr .strip-card-desc {
     display: none;
 }
-
-/* Kanan-tengah: baji yang melebar ke kanan-bawah */
 .slot-mr {
     clip-path: polygon(47.5% 41.66%, 100% 17.3%, 100% 100%, 38% 46.07%);
     --ct: 38%;
@@ -170,8 +137,6 @@
     --cb: 34%;
     --cl: 66%;
 }
-
-/* Kiri-bawah: keping paling luas */
 .slot-bl {
     clip-path: polygon(0 63.7%, 38% 46.07%, 100% 100%, 0 100%);
     --ct: 67%;

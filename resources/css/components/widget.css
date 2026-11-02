@@ -1,12 +1,11 @@
-/* ── Widget jam & cuaca ── */
 .widget {
     padding: 11px 14px;
     border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.08); /* sebelumnya 0.3 */
-    background-image: var(--noise-panel); /* baru */
-    background-size: 200px 200px; /* baru */
-    backdrop-filter: blur(3px); /* baru */
-    border: 0.5px solid rgba(255, 244, 224, 0.4); /* sebelumnya rgba(255, 255, 255, 0.3) */
+    background-color: rgba(0, 0, 0, 0.08);
+    background-image: var(--noise-panel);
+    background-size: 200px 200px;
+    backdrop-filter: blur(3px);
+    border: 0.5px solid rgba(255, 244, 224, 0.4);
     border: 0.5px solid rgba(255, 255, 255, 0.3);
     text-shadow: var(--text-shadow);
     font-family: var(--font-mono);

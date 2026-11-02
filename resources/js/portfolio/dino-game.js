@@ -1,45 +1,29 @@
 (() => {
     "use strict";
-
     const canvas = document.querySelector("canvas[data-dino-game]");
     if (!canvas) return;
-
     const ctx = canvas.getContext("2d");
     ctx.imageSmoothingEnabled = true;
-
     const BASE = (canvas.dataset.assets || "/assets/dino").replace(/\/$/, "");
-    const SCOPE = canvas.dataset.spaceScope || "visible"; // visible | focus
-    const SHOW_TEXT = canvas.dataset.text === "on"; // skor, HI, petunjuk, GAME OVER (default: mati)
+    const SCOPE = canvas.dataset.spaceScope || "visible";
+    const SHOW_TEXT = canvas.dataset.text === "on";
     const muteBtn = document.querySelector("[data-dino-mute]");
-
-    /* ---------- warna teks/garis tanah/ikon ulang (aset kucing sudah berwarna sendiri) ---------- */
     const cs = getComputedStyle(canvas);
     const cssVar = (name, fallback) =>
         cs.getPropertyValue(name).trim() || fallback;
     const C_TEXT = cssVar("--game-ink", "#2e2e2e");
     const C_MUTED = cssVar("--game-ink-muted", "rgba(46,46,46,.5)");
     const C_AMBER = cssVar("--game-accent", "#a8620d");
-    const MONO = 'ui-monospace, Menlo, Consolas, "Courier New", monospace';
-
-    /* ---------- ukuran tampil tiap jenis sprite ----------
-       Aset sumber berukuran ratusan piksel (foto/pixel-art beresolusi tinggi);
-       nilai di bawah adalah TINGGI tampilnya di dunia game (lebar menyesuaikan
-       proporsional). Ubah angkanya untuk membesarkan/mengecilkan kategori tertentu. */
+    const MONO = cssVar(
+        "--font-mono",
+        'ui-monospace, Menlo, Consolas, "Courier New", monospace',
+    );
     const SIZE = {
-        cat: 52, // kucing berlari & melompat — jadi ACUAN skala untuk semua pose kucing lain
-        // (merunduk, rebah mati). Lihat CAT_SCALE di bagian pemuatan aset: skala yang sama
-        // dipakai ke semua pose supaya "besar tubuh" kucingnya konsisten, bukan tiap pose
-        // dipaksa ke tinggi tampil sendiri-sendiri (itu sebabnya dulu kucing "mati" kelihatan
-        // lebih kecil dari kucing "lari" — kotak pose rebah memang jauh lebih pendek karena
-        // badannya horizontal, bukan karena kucingnya benar-benar mengecil).
+        cat: 52,
         bird: 30,
         bush: 34,
         cloud: 16,
     };
-
-    /** Kotak piksel yang benar-benar terlihat (alpha di atas ambang) pada satu gambar sumber.
-        Dipakai untuk memangkas padding transparan yang ikut terbawa dari file PNG mentah,
-        supaya sprite yang tampil (dan hitbox-nya) pas dengan gambar yang benar-benar kelihatan. */
     function alphaBBox(img, threshold = 16) {
         const c = document.createElement("canvas");
         c.width = img.width;
@@ -50,8 +34,6 @@
         try {
             data = g.getImageData(0, 0, c.width, c.height).data;
         } catch (e) {
-            // Kanvas "tainted" (aset lintas-origin tanpa CORS) — tak bisa dibaca pikselnya,
-            // jadi pakai ukuran penuh gambar apa adanya (tanpa pemangkasan).
             return { x: 0, y: 0, w: img.width, h: img.height };
         }
         let minX = c.width,
@@ -72,14 +54,6 @@
             return { x: 0, y: 0, w: img.width, h: img.height };
         return { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 };
     }
-
-    /** Menggabungkan bbox beberapa frame SEJENIS (mis. semua frame lari) jadi satu kotak
-        yang sama untuk semuanya. Wajib dipakai untuk sprite yang dianimasikan (gonta-ganti
-        frame): kalau tiap frame dipangkas sendiri-sendiri dengan bbox masing-masing, posisi
-        piksel pertama yang tak-transparan bisa beda tiap frame → kucing/burung kelihatan
-        "bergetar" horizontal/vertikal saat animasi berjalan. Dengan union bbox, kotak potongnya
-        sama untuk seluruh kelompok, jadi cuma padding yang memang tak terpakai di SEMUA frame
-        yang dibuang. */
     function unionBBox(imgs, threshold = 16) {
         let minX = Infinity,
             minY = Infinity,
@@ -94,11 +68,6 @@
         });
         return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
     }
-
-    /** Menskalakan gambar sumber ke tinggi target, lebar menyesuaikan proporsi asli.
-        `rect` opsional: kalau diisi (biasanya hasil alphaBBox/unionBBox), hanya area itu dari
-        gambar sumber yang diambil — dipakai untuk memangkas padding transparan sebelum scale.
-        `flip` opsional: balik horizontal (dipakai untuk membalik arah hadap burung). */
     function scaledSprite(img, targetH, rect, flip) {
         const r = rect || { x: 0, y: 0, w: img.width, h: img.height };
         const scale = targetH / r.h;
@@ -119,13 +88,6 @@
         if (flip) g.restore();
         return attachMask(c);
     }
-
-    /** Menempelkan "topeng" alpha (piksel mana yang benar-benar tampak, bukan transparan) ke
-        sebuah kanvas sprite, dipakai untuk tabrakan piksel-per-piksel di pixelOverlap().
-        Kotak (AABB) tetap dipakai sebagai tes cepat awal; begitu dua kotak beririsan, baru
-        dicek betul-betul apakah ada piksel non-transparan dari kedua sprite yang bertumpuk.
-        Ini yang membereskan "ruang kosong di gambar" akibat pose diagonal/berlekuk (kucing
-        lari, semak) — bukan lagi ditambal dengan menambah/mengurangi ukuran kotak. */
     function attachMask(canvas, threshold = 16) {
         const g = canvas.getContext("2d");
         try {
@@ -135,25 +97,17 @@
                 mask[i] = data[i * 4 + 3] > threshold ? 1 : 0;
             canvas.alphaMask = mask;
         } catch (e) {
-            // Kanvas "tainted" (aset lintas-origin tanpa CORS) — tak bisa dibaca pikselnya.
-            // Ditandai null; pixelOverlap() akan mundur otomatis ke deteksi kotak biasa.
             canvas.alphaMask = null;
         }
         return canvas;
     }
-
-    /** Tabrakan piksel-per-piksel antara dua sprite pada posisi dunia masing-masing.
-        boxA/boxB: {x,y,w,h} di koordinat dunia game. spriteA/spriteB: kanvas sumbernya
-        (harus berukuran sama dengan w/h box-nya) yang sudah punya .alphaMask dari attachMask(). */
     function pixelOverlap(boxA, spriteA, boxB, spriteB) {
         const x0 = Math.max(boxA.x, boxB.x);
         const y0 = Math.max(boxA.y, boxB.y);
         const x1 = Math.min(boxA.x + boxA.w, boxB.x + boxB.w);
         const y1 = Math.min(boxA.y + boxA.h, boxB.y + boxB.h);
-        if (x1 <= x0 || y1 <= y0) return false; // kotaknya sendiri sudah tidak beririsan
-
-        if (!spriteA.alphaMask || !spriteB.alphaMask) return true; // tak bisa dicek -> anggap kena (aman)
-
+        if (x1 <= x0 || y1 <= y0) return false;
+        if (!spriteA.alphaMask || !spriteB.alphaMask) return true;
         const ax = Math.round(boxA.x),
             ay = Math.round(boxA.y);
         const bx = Math.round(boxB.x),
@@ -193,11 +147,6 @@
         }
         return false;
     }
-
-    /** Membalik sprite secara horizontal (cermin kiri-kanan) dan menghitung ulang topeng
-        alpha-nya untuk sprite hasil baliknya. Dipakai untuk burung: rintangan bergerak dari
-        kanan ke kiri (lihat update()), jadi moncongnya harus mengarah ke kiri agar sesuai
-        arah terbangnya, bukan ke arah aset aslinya. */
     function flipHorizontal(canvas) {
         const c = document.createElement("canvas");
         c.width = canvas.width;
@@ -210,13 +159,11 @@
         g.restore();
         return attachMask(c);
     }
-
     const W = canvas.width,
         H = canvas.height,
         GROUND = H - 26;
     const GRAVITY = 2200,
         JUMP_V = -700;
-
     function combine(list, gap = 6) {
         const w =
             list.reduce((a, c) => a + c.width, 0) + gap * (list.length - 1);
@@ -232,12 +179,6 @@
         });
         return attachMask(c);
     }
-
-    /* ---------- muat aset ----------
-       Kucing berlari: cat_run_01..05 (siklus lari) + cat_run_06/07 (pose melompat: naik & turun)
-       Burung: bird_fly_01..05 (siklus kepakan)
-       Semak: bush_01..05 (rintangan; 1 file = 1 varian ukuran/bentuk)
-       Awan: cloud_01 */
     const FILES = {
         run1: "cat_run_01",
         run2: "cat_run_02",
@@ -274,9 +215,6 @@
             i.src = src;
         });
     let IMG, BUSHES;
-
-    /* ---------- suara (Web Audio, tanpa file audio) ---------- */
-    // Default MATI karena hero tidak punya tombol suara. Aktifkan: data-sound="on" pada <canvas>.
     let actx = null,
         muted = canvas.dataset.sound !== "on";
     function sfx(kind) {
@@ -308,22 +246,8 @@
             if (kind === "die") tone(300, 70, 0.4, "sawtooth", 0.07);
         } catch (e) {}
     }
-
-    /* ---------- suara aset (file .wav): kucing & burung ----------
-       Path bisa dioverride lewat data-cat-sound / data-bird-sound pada <canvas>; kalau tidak
-       diisi, defaultnya mengambil dari folder aset yang sama dengan sprite (BASE). Sediakan
-       file .wav-nya di path tersebut — kalau filenya tak ada/gagal dimuat, pemutaran tidak
-       menghentikan game, tapi DICATAT ke console (lihat onerror di bawah) supaya kelihatan
-       jelas, bukan diam-diam seperti sebelumnya. Cek tab Console & Network di DevTools kalau
-       suaranya tidak keluar.
-       Default suara MATI kalau data-sound bukan "on" (lihat const `muted` di atas) — kalau
-       kamu belum menaruh data-sound="on" di <canvas>, tekan M sekali dulu untuk menyalakannya
-       (cek console: harus muncul log "[dino-game] suara: aktif"), baru lompat/​tunggu burung
-       muncul untuk dengar bunyinya. Menekan M sendiri memang tidak berbunyi apa-apa — itu cuma
-       menyalakan/mematikan, bukan pemicu suara. */
     const CAT_SOUND_SRC = canvas.dataset.catSound || `${BASE}/cat_meow.wav`;
     const BIRD_SOUND_SRC = canvas.dataset.birdSound || `${BASE}/bird_chirp.wav`;
-
     function loadClip(src, volume) {
         const el = new Audio(src);
         el.preload = "auto";
@@ -335,24 +259,15 @@
         });
         return el;
     }
-    // Volume dasar tiap klip, dikalikan WAV_VOLUME_SCALE supaya gampang disetel semuanya
-    // sekaligus dari satu angka ini (0.6 = 60% dari volume dasarnya).
     const WAV_VOLUME_SCALE = 0.5;
     const catClip = loadClip(CAT_SOUND_SRC, 0.55 * WAV_VOLUME_SCALE);
     const birdClip = loadClip(BIRD_SOUND_SRC, 0.35 * WAV_VOLUME_SCALE);
-
-    /** Memutar klip .wav, ikut aturan mute yang sama dengan sfx() (tombol suara / tombol "M").
-        Setiap pemutaran meng-clone elemennya supaya beberapa klip bisa tumpang tindih (mis. dua
-        burung muncul berdekatan) tanpa saling memotong satu sama lain. */
     function playClip(el) {
         if (muted) return;
         try {
             const node = el.cloneNode(true);
             node.volume = el.volume;
             node.play().catch((err) => {
-                // Paling sering: browser menolak karena belum ada interaksi pengguna sama
-                // sekali di halaman, atau file suaranya memang gagal dimuat (lihat log error
-                // di atas). Dicatat, bukan didiamkan, supaya gampang dilacak.
                 console.warn(
                     "[dino-game] Gagal memutar suara:",
                     err.message || err,
@@ -360,26 +275,30 @@
             });
         } catch (e) {}
     }
-
+    function renderMute() {
+        if (!muteBtn) return;
+        muteBtn.textContent = muted ? "♪ suara: mati" : "♪ suara: aktif";
+        muteBtn.setAttribute("aria-pressed", String(!muted));
+        muteBtn.classList.toggle("is-on", !muted);
+    }
     function toggleMute() {
         muted = !muted;
+        renderMute();
+        if (!muted) sfx("point");
         console.log("[dino-game] suara:", muted ? "mati" : "aktif");
-        if (muteBtn)
-            muteBtn.textContent = "suara: " + (muted ? "mati" : "aktif");
     }
-    if (muteBtn)
+    if (muteBtn) {
+        renderMute();
         muteBtn.addEventListener("click", () => {
             toggleMute();
             canvas.focus({ preventScroll: true });
         });
-
-    /* ---------- state ---------- */
+    }
     let hi = 0;
     try {
         hi = Number(localStorage.getItem("dinoBest")) || 0;
     } catch (e) {}
-
-    let state = "idle"; // idle | running | over
+    let state = "idle";
     let cat, obstacles, clouds, dirt;
     let score = 0,
         speed = 300,
@@ -394,10 +313,8 @@
         clock = 0,
         deathT = 0,
         visible = true;
-
     const rand = (a, b) => a + Math.random() * (b - a);
     const px = (v) => Math.round(v);
-
     function reset() {
         cat = { x: 30, y: GROUND, vy: 0 };
         obstacles = [];
@@ -421,8 +338,6 @@
             w: Math.random() < 0.5 ? 2 : rand(4, 12),
         }));
     }
-
-    /* ---------- input ---------- */
     function jump() {
         if (cat.y >= GROUND) {
             cat.vy = JUMP_V;
@@ -432,7 +347,7 @@
     }
     function press() {
         if (state === "over") {
-            if (performance.now() - diedAt < 400) return; // cegah restart tak sengaja
+            if (performance.now() - diedAt < 400) return;
             reset();
             state = "running";
             return;
@@ -445,14 +360,8 @@
         }
         jump();
     }
-
-    // Game berhenti dan tidak menerima tombol saat modal portofolio terbuka
-    // (agar panah atas/bawah di modal tidak ikut membuat kucing melompat).
     const modalOpen = () =>
         document.getElementById("modal")?.classList.contains("open") ?? false;
-
-    // Space hanya diambil alih saat game terlihat di layar dan fokus tidak berada
-    // pada elemen interaktif, sehingga scroll halaman dan pengisian form tetap normal.
     const INTERACTIVE =
         'input,textarea,select,button,a,summary,[contenteditable],[role="button"]';
     function active() {
@@ -468,7 +377,6 @@
             a.closest(INTERACTIVE)
         );
     }
-
     document.addEventListener("keydown", (e) => {
         if (e.code === "Space") {
             if (!active()) return;
@@ -486,10 +394,6 @@
             if (active()) {
                 toggleMute();
             } else {
-                // Kalau M ditekan tapi tidak terjadi apa-apa (bahkan log "suara: aktif/mati"
-                // di atas tidak muncul), inilah sebabnya: game menganggap dirinya tidak aktif
-                // (belum cukup terlihat di layar, atau fokus keyboard sedang ada di elemen lain
-                // seperti input/tombol). Coba klik kanvas game dulu, baru tekan M.
                 console.log(
                     "[dino-game] Tombol M diabaikan: kanvas dianggap tidak aktif (tidak terlihat di layar / fokus ada di elemen lain).",
                 );
@@ -507,7 +411,6 @@
         canvas.focus({ preventScroll: true });
         press();
     });
-
     if ("IntersectionObserver" in window) {
         new IntersectionObserver(
             ([en]) => {
@@ -516,13 +419,7 @@
             { threshold: 0.4 },
         ).observe(canvas);
     }
-
-    /* ---------- logika ---------- */
     const isDucking = () => ducking && cat.y >= GROUND && state === "running";
-
-    // Kotak dunia (bukan lagi dipersempit manual) untuk sprite kucing/rintangan yang sedang
-    // tampil. Pas dengan ukuran gambar sepenuhnya karena kepresisiannya sekarang ditangani oleh
-    // pixelOverlap() (cek piksel alfa), bukan dengan mengecilkan kotaknya.
     function catRect(sprite) {
         return {
             x: cat.x,
@@ -537,17 +434,11 @@
     function obstacleRect(o, sprite) {
         return { x: o.x, y: o.y, w: sprite.width, h: sprite.height };
     }
-
     function randomBush() {
         return BUSHES[Math.floor(Math.random() * BUSHES.length)];
     }
-
     function spawn() {
         if (score > 250 && Math.random() < 0.28) {
-            // 3 tingkat dengan strategi berbeda (kucing berdiri lebih tinggi dari merunduk):
-            //   rendah  → wajib lompat
-            //   sedang  → merunduk (aman) atau lompat (perlu timing pas)
-            //   tinggi  → cukup lewat di bawahnya tanpa aksi apa pun
             const tops = [GROUND - 25, GROUND - 45, GROUND - 85];
             obstacles.push({
                 kind: "bird",
@@ -587,28 +478,24 @@
             }
         });
     }
-
     function update(dt) {
-        const g = ducking && cat.y < GROUND ? GRAVITY * 2.4 : GRAVITY; // turun lebih cepat saat ↓ ditekan
+        const g = ducking && cat.y < GROUND ? GRAVITY * 2.4 : GRAVITY;
         cat.vy += g * dt;
         cat.y += cat.vy * dt;
         if (cat.y >= GROUND) {
             cat.y = GROUND;
             cat.vy = 0;
         }
-
         speed = Math.min(720, speed + 6 * dt);
         score += (speed * dt) / 40;
         animT += dt;
         scroll(dt, speed);
-
         sinceSpawn += speed * dt;
         if (sinceSpawn >= gap) {
             spawn();
             sinceSpawn = 0;
             gap = speed * 0.64 + rand(130, 330);
         }
-
         obstacles.forEach((o) => {
             if (o.kind === "bird") {
                 o.x -= (speed + 50) * dt;
@@ -617,7 +504,6 @@
             } else o.x -= speed * dt;
         });
         obstacles = obstacles.filter((o) => o.x > -140);
-
         const m = Math.floor(score / 100);
         if (m > lastMile) {
             lastMile = m;
@@ -625,7 +511,6 @@
             sfx("point");
         }
         if (flash > 0) flash -= dt;
-
         const cs = catSprite();
         const cr = catRect(cs);
         if (
@@ -636,12 +521,8 @@
         )
             die();
     }
-
     function die() {
         state = "over";
-        // Tabrakan bisa terjadi saat kucing masih di udara (mis. lompat tapi nyangkut ujung
-        // semak saat turun). Tanpa ini, posisi Y-nya ikut membeku di udara dan pose "rebah"
-        // kelihatan melayang, tidak menapak tanah.
         cat.y = GROUND;
         cat.vy = 0;
         diedAt = performance.now();
@@ -655,8 +536,6 @@
             } catch (e) {}
         }
     }
-
-    /* ---------- gambar ---------- */
     function restartIcon(cx, cy) {
         const r = 12,
             a0 = 0.25 * Math.PI,
@@ -692,14 +571,11 @@
             return IMG.crouch[Math.floor(animT / 0.1) % IMG.crouch.length];
         return IMG.run[Math.floor(animT / 0.08) % IMG.run.length];
     }
-
     function draw() {
-        ctx.clearRect(0, 0, W, H); // latar transparan: yang terlihat adalah foto di belakang
-
+        ctx.clearRect(0, 0, W, H);
         ctx.globalAlpha = 0.55;
         clouds.forEach((c) => ctx.drawImage(IMG.cloud, px(c.x), px(c.y)));
         ctx.globalAlpha = 1;
-
         ctx.fillStyle = C_MUTED;
         ctx.fillRect(0, GROUND, W, 2);
         ctx.globalAlpha = 0.5;
@@ -707,7 +583,6 @@
             ctx.fillRect(px(d.x), GROUND + px(d.y), px(d.w), 2),
         );
         ctx.globalAlpha = 1;
-
         obstacles.forEach((o) =>
             ctx.drawImage(
                 o.kind === "bird" ? IMG.bird[o.f] : o.img,
@@ -715,13 +590,11 @@
                 px(o.y),
             ),
         );
-
         const s = catSprite();
         ctx.drawImage(s, px(cat.x), px(cat.y - s.height));
-
         if (SHOW_TEXT) {
             if ("letterSpacing" in ctx) ctx.letterSpacing = "2px";
-            ctx.font = "bold 13px " + MONO;
+            ctx.font = "500 13px " + MONO;
             ctx.textAlign = "right";
             ctx.textBaseline = "alphabetic";
             const cur = String(Math.floor(score)).padStart(5, "0");
@@ -744,20 +617,21 @@
                 ctx.fillStyle = C_AMBER;
                 if (Math.floor(clock * 1.6) % 2 === 0)
                     ctx.fillText("TEKAN SPASI UNTUK MULAI", W / 2, 92);
-                // Petunjuk kontrol: statis (tidak ikut berkedip) supaya selalu terbaca.
                 ctx.fillStyle = C_MUTED;
                 ctx.font = "11px " + MONO;
-                ctx.fillText("SPASI / ↑ LOMPAT   ↓ MERUNDUK", W / 2, 110);
+                ctx.fillText(
+                    "SPASI / ↑ LOMPAT   ↓ MERUNDUK   M SUARA",
+                    W / 2,
+                    110,
+                );
             } else if (state === "over") {
                 ctx.fillStyle = C_TEXT;
-                ctx.font = "bold 20px " + MONO;
+                ctx.font = "500 20px " + MONO;
                 ctx.fillText("G A M E   O V E R", W / 2, 78);
             }
         }
-
         if (state === "over") restartIcon(W / 2, SHOW_TEXT ? 112 : 84);
     }
-
     function frame(now) {
         const dt = Math.min(0.05, (now - last) / 1000);
         last = now;
@@ -765,13 +639,11 @@
             clock += dt;
             if (state === "running") update(dt);
             else if (state === "idle") scroll(dt, 0);
-            else if (state === "over") deathT += dt; // animasi rebah tetap berjalan; latar & rintangan beku
+            else if (state === "over") deathT += dt;
             draw();
         }
         requestAnimationFrame(frame);
     }
-
-    /* ---------- mulai ---------- */
     Promise.all(
         Object.entries(FILES).map(([k, f]) =>
             load(`${BASE}/${f}.png`).then((i) => [k, i]),
@@ -779,15 +651,6 @@
     )
         .then((entries) => {
             const a = Object.fromEntries(entries);
-
-            // Pangkas padding transparan per KELOMPOK frame (bukan per-file) sebelum di-scale.
-            // Ini yang membereskan dua masalah sekaligus:
-            //  1) hitbox yang lebih besar dari gambar yang kelihatan (mati padahal belum nyentuh),
-            //  2) kucing "mati" kelihatan mengambang di atas tanah (ada padding transparan di
-            //     bawah tubuhnya pada file cat_lying_dead_*).
-            // Dipangkas per-KELOMPOK (union bbox), bukan per-file sendiri-sendiri, supaya semua
-            // frame dalam satu animasi dipotong di kotak yang sama — kalau per-file, kucing/burung
-            // bisa kelihatan "bergetar" saat berganti frame karena bbox tiap file berbeda-beda.
             const runBox = unionBBox([
                 a.run1,
                 a.run2,
@@ -811,15 +674,7 @@
                 a.bird4,
                 a.bird5,
             ]);
-
-            // Satu skala tunggal dipakai untuk SEMUA pose kucing (lari, merunduk, rebah),
-            // diturunkan dari pose lari. Kalau tiap pose dipaksa ke tinggi tampil sendiri-sendiri
-            // (cara lama), "besar tubuh" kucingnya ikut berubah tiap ganti pose — padahal kotak
-            // pose merunduk/rebah memang lebih pendek karena posturnya, bukan karena badannya
-            // mengecil/membesar. Dengan CAT_SCALE, tinggi tampil tiap pose mengikuti proporsi
-            // aslinya (relatif ke pose lari), jadi kucingnya kelihatan sama besar di semua pose.
             const CAT_SCALE = SIZE.cat / runBox.h;
-
             IMG = {
                 run: [a.run1, a.run2, a.run3, a.run4, a.run5].map((im) =>
                     scaledSprite(im, SIZE.cat, runBox),
@@ -832,15 +687,11 @@
                 dead: [a.dead1, a.dead2, a.dead3, a.dead4].map((im) =>
                     scaledSprite(im, deadBox.h * CAT_SCALE, deadBox),
                 ),
-                // flip=true: aset burung aslinya menghadap kanan, tapi rintangan bergerak dari
-                // kanan ke kiri layar — dibalik supaya paruhnya menghadap arah terbangnya.
                 bird: [a.bird1, a.bird2, a.bird3, a.bird4, a.bird5].map((im) =>
                     scaledSprite(im, SIZE.bird, birdBox, true),
                 ),
                 cloud: scaledSprite(a.cloud, SIZE.cloud),
             };
-            // Semak tidak dianimasikan (tiap file muncul sendiri-sendiri sebagai rintangan
-            // berbeda, tidak berganti frame), jadi aman dipangkas per-file tanpa risiko "bergetar".
             BUSHES = [a.bush1, a.bush2, a.bush3, a.bush4, a.bush5].map((im) =>
                 scaledSprite(im, SIZE.bush, alphaBBox(im)),
             );

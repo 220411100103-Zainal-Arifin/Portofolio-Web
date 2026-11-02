@@ -1,4 +1,3 @@
-/* ── Sidebar ── */
 .sidebar {
     position: relative;
     display: flex;
@@ -16,9 +15,6 @@
 .sidebar::-webkit-scrollbar {
     display: none;
 }
-
-/* Brand di atas, petunjuk keyboard di bawah; margin auto membuat tab
-   selalu berada di tengah dan tidak bertumpuk di layar pendek. */
 .brand {
     flex: none;
     margin-bottom: auto;
@@ -43,7 +39,6 @@
     color: var(--accent-amber);
     outline: none;
 }
-
 .tab-btn {
     flex: none;
     writing-mode: vertical-rl;
@@ -74,7 +69,6 @@
     color: var(--text);
     border-left: 2px solid #d9963c;
 }
-
 .kbd-hint {
     flex: none;
     margin-top: auto;

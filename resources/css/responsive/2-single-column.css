@@ -1,11 +1,8 @@
-/* ── Layar sempit ATAU sangat pendek: satu kolom, bisa di-scroll ── */
 @media (max-width: 900px), (max-height: 560px) {
     .main-layout {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: auto minmax(0, 1fr);
     }
-
-    /* Sidebar → bar horizontal di atas */
     .sidebar {
         flex-direction: row;
         justify-content: flex-start;
@@ -40,8 +37,6 @@
     .kbd-hint {
         display: none;
     }
-
-    /* Konten: tumpukan vertikal */
     .content-area {
         grid-template-columns: minmax(0, 1fr);
         grid-template-rows: none;
@@ -59,14 +54,11 @@
     .hero-name {
         font-size: clamp(44px, 10vw, 72px);
     }
-
     .widget:hover,
     .strip-card:hover,
     .strip-card:focus-visible {
         transform: none;
     }
-
-    /* Modal */
     .modal-panel {
         padding: 28px 24px 36px;
         border-radius: 16px 16px 0 0;
@@ -82,14 +74,11 @@
         margin-bottom: 24px;
     }
     .widget {
-        justify-self: stretch; /* mengikuti lebar kolom, sama seperti kotak pecahan */
-        max-width: none; /* lepas batas 340px milik desktop */
+        justify-self: stretch;
+        max-width: none;
     }
     .strip-cards {
-        height: min(
-            720px,
-            calc(100vw * 1.1)
-        ); /* menggantikan height: auto + aspect-ratio */
+        height: min(720px, calc(100vw * 1.1));
         max-height: 720px;
     }
 }

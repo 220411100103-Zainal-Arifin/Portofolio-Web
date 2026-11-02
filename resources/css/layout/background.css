@@ -1,6 +1,3 @@
-/* ── Background ── */
-/* Gambar A: resources/images/fotomount.png
-   CATATAN: path url() relatif terhadap FILE INI (resources/css/layout/) */
 .bg-scene {
     position: fixed;
     inset: 0;
@@ -12,9 +9,6 @@
     transform: scale(1.08);
     will-change: transform;
 }
-
-/* Gambar B: resources/images/fotomount2.png
-   Muncul lewat crossfade saat kelas .is-alt aktif. */
 .bg-scene::before {
     content: "";
     position: absolute;
@@ -30,10 +24,6 @@
 .bg-scene.is-alt::before {
     opacity: 1;
 }
-
-/* Gambar C: resources/images/fotomount3.png
-   Muncul lewat crossfade saat kelas .is-alt2 aktif.
-   Diletakkan di atas layer B agar tampil dengan benar. */
 .bg-scene .bg-layer3 {
     content: "";
     position: absolute;
@@ -50,8 +40,6 @@
 .bg-scene.is-alt2 .bg-layer3 {
     opacity: 1;
 }
-
-/* Scrim + gradien gelap dari bawah + grain */
 .bg-scene::after {
     content: "";
     position: absolute;

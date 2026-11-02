@@ -1,7 +1,6 @@
 function updateClock() {
     const now = new Date();
     const pad = (n) => String(n).padStart(2, "0");
-
     document.getElementById("clock-hm").textContent =
         `${pad(now.getHours())}:${pad(now.getMinutes())}`;
     document.getElementById("clock-sec").textContent = pad(now.getSeconds());
@@ -15,7 +14,6 @@ function updateClock() {
         },
     );
 }
-
 export function initClock() {
     updateClock();
     setInterval(updateClock, 1000);

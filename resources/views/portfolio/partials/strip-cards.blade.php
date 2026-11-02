@@ -1,4 +1,3 @@
-{{-- Kotak besar yang "pecah" jadi 4 keping. Posisi tiap kartu diatur lewat 'slot' di config/portfolio.php --}}
 <div class="strip-cards" role="list">
   @foreach (config('portfolio.sections') as $section)
     <button type="button"
@@ -21,8 +20,6 @@
       </div>
     </button>
   @endforeach
-
-  {{-- Garis pemisah antar keping (koordinat sama dengan clip-path di strip-cards.css) --}}
   <svg class="strip-cards-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
     <line x1="38" y1="0"     x2="47.5" y2="41.66" />
     <line x1="0"  y1="63.7"  x2="100"  y2="17.3" />

@@ -1,4 +1,3 @@
-/* ── Fokus gambar latar & scrim per ukuran layar ── */
 @media (max-width: 1280px) {
     :root {
         --bg-x: 30%;
@@ -10,7 +9,6 @@
         --bg-x: 15%;
     }
 }
-/* Layout satu kolom: teks berada di atas area foto yang terang */
 @media (max-width: 900px), (max-height: 560px) {
     :root {
         --scrim: 0.32;

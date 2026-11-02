@@ -1,8 +1,4 @@
 <div class="hero">
-  {{-- Game kucing: latar transparan. Spasi (laptop) / ketuk (tablet & ponsel).
-       Logika: resources/js/portfolio/dino-game.js — aset: public/assets/dino/*.png
-       PENTING: <canvas> harus tetap di dalam <div class="hero-game">. Pembungkus inilah yang
-       membuat CSS (components/dino-game.css) mengecilkan kanvas mengikuti lebar layar. --}}
   <div class="hero-game">
     <canvas
       data-dino-game
@@ -14,17 +10,27 @@
       height="200"
       tabindex="-1"
     ></canvas>
+    <button type="button" class="game-sound" data-dino-mute aria-pressed="false"
+      title="Nyalakan/matikan suara game (tombol M)">♪ suara: mati</button>
   </div>
-
   <p class="hero-tag">Web Dev · Machine Learning & NLP · IT Support</p>
   <h1 class="hero-name">
     <span class="hero-name-first">ZAINAL</span>
     <span class="hero-name-last">ARIFIN</span>
   </h1>
   <p class="hero-desc">
-    Mahasiswa Informatika yang suka mendaki gunung dan berburu cahaya
-    lewat lensa. Membangun perangkat lunak sambil belajar membaca alam.
+    Menjelajahi dunia teknologi lewat baris kode, dan mengenal dunia
+    lewat perjalanan. Saya suka membangun sesuatu melalui teknologi,
+    mengabadikan cerita lewat lensa, serta menemukan perspektif baru
+    di setiap pendakian.
   </p>
+  <div class="palette" data-palette role="group" aria-label="Palet warna latar belakang">
+    <div class="palette-swatches" data-palette-swatches></div>
+    <button type="button" class="bg-switch" data-toggle-background
+      aria-label="Ganti latar belakang (tekan B)">
+      <span class="kbd-badge"><b>B</b></span> ganti latar
+    </button>
+  </div>
   <div class="icon-row">
     <a href="https://mail.google.com/mail/?view=cm&to=arifinwize1@gmail.com" class="icon-link" aria-label="Email">✉ email</a>
     <a href="https://github.com/220411100103-Zainal-Arifin" class="icon-link" aria-label="GitHub">◈ github</a>

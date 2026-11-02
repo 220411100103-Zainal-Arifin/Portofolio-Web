@@ -3,13 +3,22 @@ import { initModal } from "./modal.js";
 import { initKeyboard } from "./keyboard.js";
 import { initClock } from "./clock.js";
 import { initWeather } from "./weather.js";
+import { initPalette } from "./palette.js";
 import "./dino-game.js";
-
-// app.js bisa dipakai halaman lain; lewati jika bukan halaman portofolio.
+const safe = (init) => {
+    try {
+        init();
+    } catch (err) {
+        console.error(`[portfolio] ${init.name} gagal:`, err);
+    }
+};
 if (document.querySelector(".main-layout")) {
-    initBackground();
-    initModal();
-    initKeyboard();
-    initClock();
-    initWeather();
+    [
+        initBackground,
+        initPalette,
+        initModal,
+        initKeyboard,
+        initClock,
+        initWeather,
+    ].forEach(safe);
 }
